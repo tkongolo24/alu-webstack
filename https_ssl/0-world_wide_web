@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Function to get subdomain information
+get_subdomain_info() {
+	local domain=$1
+	local subdomain=$2
+	local full_domain="${subdomain}.${domain}"
+	
+	# Query DNS and extract record type and destination
+	local dig_output=$(dig "$full_domain" +short)
+	local record_type=$(dig "$full_domain" | grep "^${full_domain}" | awk '{print $4}' | head -1)
+	local destination=$(dig "$full_domain" +short | head -1)
+	
+	# Display the result
+	echo "The subdomain $subdomain is a $record_type record and points to $destination"
+}
+
+# Main script logic
+domain=$1
+subdomain=$2
+
+# If subdomain is not provided, audit default subdomains
+if [ -z "$subdomain" ]; then
+	for sub in www lb-01 web-01 web-02; do
+		get_subdomain_info "$domain" "$sub"
+	done
+else
+	# Audit specific subdomain
+	get_subdomain_info "$domain" "$subdomain"
+fi
